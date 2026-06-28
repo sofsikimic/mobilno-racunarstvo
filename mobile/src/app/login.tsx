@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { router } from 'expo-router';
+import { Mail, Lock, LogIn } from 'lucide-react-native';
 import { useAuthStore } from '../../stores/authStore';
+import { colors, radius } from '../constants/theme';
 
 export default function Login() {
   const login = useAuthStore((s) => s.login);
@@ -21,101 +23,166 @@ export default function Login() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Prijava</Text>
-      <Text style={styles.subtitle}>Prijavite se da upravljate korpom i porudžbinama.</Text>
+    <KeyboardAvoidingView
+      style={styles.outer}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <View style={styles.card}>
+        <Text style={styles.title}>Sign in</Text>
+        <Text style={styles.subtitle}>
+          Sign in to manage your cart and place orders.
+        </Text>
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+        {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <TextInput
-        style={styles.input}
-        value={email}
-        onChangeText={setEmail}
-        placeholder="Email"
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
+        <View style={styles.field}>
+          <Text style={styles.label}>Email</Text>
+          <View style={styles.inputRow}>
+            <Mail size={18} color={colors.slate500} />
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="e.g. user@test.com"
+              placeholderTextColor={colors.slate500}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
+          </View>
+        </View>
 
-      <TextInput
-        style={styles.input}
-        value={password}
-        onChangeText={setPassword}
-        placeholder="Lozinka"
-        secureTextEntry
-      />
+        <View style={styles.field}>
+          <Text style={styles.label}>Password</Text>
+          <View style={styles.inputRow}>
+            <Lock size={18} color={colors.slate500} />
+            <TextInput
+              style={styles.input}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="••••••••"
+              placeholderTextColor={colors.slate500}
+              secureTextEntry
+            />
+          </View>
+        </View>
 
-      <TouchableOpacity
-        style={[styles.button, isLoading && styles.buttonDisabled]}
-        onPress={onSubmit}
-        disabled={isLoading}
-      >
-        {isLoading
-          ? <ActivityIndicator color="#fff" />
-          : <Text style={styles.buttonText}>Prijavi se</Text>
-        }
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, isLoading && { opacity: 0.6 }]}
+          onPress={onSubmit}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <>
+              <LogIn size={18} color="#fff" />
+              <Text style={styles.buttonText}>Sign in</Text>
+            </>
+          )}
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push('/register')}>
-        <Text style={styles.link}>Nemate nalog? Registrujte se</Text>
-      </TouchableOpacity>
-    </View>
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Don't have an account? </Text>
+          <TouchableOpacity onPress={() => router.push('/register')}>
+            <Text style={styles.footerLink}>Create one</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  outer: {
     flex: 1,
-    padding: 24,
+    backgroundColor: colors.white,
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    padding: 20,
+  },
+  card: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.slate200,
+    borderRadius: radius.lg,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#0f172a',
-    marginBottom: 4,
+    fontSize: 24,
+    fontWeight: '800',
+    color: colors.slate900,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#64748b',
-    marginBottom: 24,
+    fontSize: 13,
+    color: colors.slate600,
+    marginTop: 4,
   },
   error: {
-    color: '#b91c1c',
-    backgroundColor: '#fef2f2',
+    marginTop: 16,
+    backgroundColor: colors.redLight,
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    borderRadius: radius.sm,
     padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-    fontSize: 14,
+    color: colors.redDark,
+    fontSize: 13,
+  },
+  field: {
+    marginTop: 18,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.slate700,
+    marginBottom: 6,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: colors.slate50,
+    borderWidth: 1,
+    borderColor: colors.slate200,
+    borderRadius: radius.sm,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
+    flex: 1,
     fontSize: 14,
-    backgroundColor: '#f8fafc',
+    color: colors.slate900,
   },
   button: {
-    backgroundColor: '#dc2626',
-    padding: 14,
-    borderRadius: 8,
+    flexDirection: 'row',
+    backgroundColor: colors.red,
+    paddingVertical: 12,
+    borderRadius: radius.sm,
     alignItems: 'center',
-    marginBottom: 16,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 22,
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  link: {
-    color: '#dc2626',
-    textAlign: 'center',
+    color: colors.white,
+    fontWeight: '700',
     fontSize: 14,
-    fontWeight: '600',
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 18,
+  },
+  footerText: {
+    fontSize: 13,
+    color: colors.slate600,
+  },
+  footerLink: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.red,
   },
 });
