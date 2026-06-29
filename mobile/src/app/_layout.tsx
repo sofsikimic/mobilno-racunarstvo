@@ -1,8 +1,9 @@
 import { Stack, router, usePathname } from 'expo-router';
 import { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { ShoppingCart, User, LogOut, LogIn, UserPlus, Package, ArrowLeft } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { ShoppingCart, User, LogOut, LogIn, UserPlus, Package, ArrowLeft, Shield } from 'lucide-react-native';
 import { useAuthStore } from '../../stores/authStore';
+import { useCartStore } from '../../stores/cartStore';
 import { colors, radius } from '../constants/theme';
 
 function Navbar() {
@@ -10,6 +11,7 @@ function Navbar() {
   const logout = useAuthStore((s) => s.logout);
   const pathname = usePathname();
   const isHome = pathname === '/';
+  const isAdmin = (user?.role || '').toLowerCase() === 'admin';
 
   async function handleLogout() {
     try {
@@ -22,7 +24,16 @@ function Navbar() {
     <View style={navStyles.header}>
       <View style={navStyles.left}>
         {!isHome && (
-          <TouchableOpacity onPress={() => router.back()} style={navStyles.backBtn}>
+          <TouchableOpacity
+            onPress={() => {
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.replace('/');
+              }
+            }}
+            style={navStyles.backBtn}
+          >
             <ArrowLeft size={20} color={colors.slate700} />
           </TouchableOpacity>
         )}
@@ -38,12 +49,19 @@ function Navbar() {
 
         {user ? (
           <>
-            <TouchableOpacity onPress={() => router.push('/cart')}>
-              <ShoppingCart size={22} color={colors.slate700} />
-            </TouchableOpacity>
+            {!isAdmin && (
+              <TouchableOpacity onPress={() => router.push('/cart')}>
+                <ShoppingCart size={22} color={colors.slate700} />
+              </TouchableOpacity>
+            )}
             <TouchableOpacity onPress={() => router.push('/profile')}>
               <User size={22} color={colors.slate700} />
             </TouchableOpacity>
+            {isAdmin && (
+              <TouchableOpacity onPress={() => router.push('/admin')} style={navStyles.adminBtn}>
+                <Shield size={16} color="#fff" />
+              </TouchableOpacity>
+            )}
             <TouchableOpacity onPress={handleLogout} style={navStyles.logoutBtn}>
               <LogOut size={16} color={colors.white} />
             </TouchableOpacity>
@@ -82,13 +100,19 @@ const navStyles = StyleSheet.create({
   loginBtn: { backgroundColor: colors.slate700, padding: 8, borderRadius: radius.sm },
   registerBtn: { backgroundColor: colors.red, padding: 8, borderRadius: radius.sm },
   logoutBtn: { backgroundColor: colors.green, padding: 8, borderRadius: radius.sm },
+  adminBtn: { backgroundColor: colors.slate900, padding: 8, borderRadius: radius.sm },
 });
 
 export default function RootLayout() {
   const me = useAuthStore((s) => s.me);
+  const clearCart = useCartStore((s) => s.clear);
 
   useEffect(() => {
-    me();
+    me().then((user) => {
+      if (user && (user.role || '').toLowerCase() === 'admin') {
+        clearCart();
+      }
+    });
   }, []);
 
   return (
@@ -104,6 +128,7 @@ export default function RootLayout() {
         <Stack.Screen name="recipes" />
         <Stack.Screen name="recipes/[id]" />
         <Stack.Screen name="orders/[id]" />
+        <Stack.Screen name="admin" />
       </Stack>
     </View>
   );
