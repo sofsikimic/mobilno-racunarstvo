@@ -35,14 +35,24 @@ function OverviewTab() {
   const isLoading = useAdminOverviewStore((s) => s.isLoading);
   const error = useAdminOverviewStore((s) => s.error);
   const days = useAdminOverviewStore((s) => s.days);
+  const lowStock = useAdminOverviewStore((s) => s.lowStock);
+  const setQuery = useAdminOverviewStore((s) => s.setQuery);
   const fetchOverview = useAdminOverviewStore((s) => s.fetchOverview);
   const clearMessages = useAdminOverviewStore((s) => s.clearMessages);
 
   useEffect(() => { fetchOverview(); }, []);
 
   const kpis = data?.kpis || {};
+  const charts = data?.charts || {};
   const tables = data?.tables || {};
   const lowStockItems = tables.low_stock_items || [];
+
+  const revenueByDay = (charts.revenue_by_day || []).map((x) => ({ day: x.day, revenue: Number(x.revenue || 0) }));
+  const ordersByDay = (charts.orders_by_day || []).map((x) => ({ day: x.day, count: Number(x.count || 0) }));
+  const ordersByStatus = (charts.orders_by_status || []).map((x) => ({ status: x.status, count: Number(x.count || 0) }));
+  const topByRevenue = (charts.top_products_by_revenue || []).map((x) => ({ name: x.name, revenue: Number(x.revenue || 0) }));
+
+  const PIE_COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#a855f7', '#f59e0b', '#64748b'];
 
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
@@ -57,10 +67,33 @@ function OverviewTab() {
         </TouchableOpacity>
       </View>
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {/* Filters */}
+      <View style={[styles.filterBox, { marginBottom: 12 }]}>
+        <Text style={styles.label}>Range (days)</Text>
+        <TextInput
+          style={[styles.searchInput, { marginBottom: 8 }]}
+          value={String(days)}
+          onChangeText={(v) => setQuery({ days: Number(v || 30) })}
+          keyboardType="numeric"
+          placeholderTextColor={colors.slate500}
+        />
+        <Text style={styles.label}>Low stock threshold</Text>
+        <TextInput
+          style={[styles.searchInput, { marginBottom: 8 }]}
+          value={String(lowStock)}
+          onChangeText={(v) => setQuery({ lowStock: Number(v || 0) })}
+          keyboardType="numeric"
+          placeholderTextColor={colors.slate500}
+        />
+        <TouchableOpacity style={[styles.searchBtn, { alignSelf: 'stretch' }]} onPress={() => { clearMessages(); fetchOverview({ days, lowStock }); }}>
+          <Text style={styles.searchBtnText}>Apply</Text>
+        </TouchableOpacity>
+      </View>
 
+      {error ? <Text style={styles.error}>{error}</Text> : null}
       {isLoading ? <ActivityIndicator size="large" color={colors.red} style={{ marginTop: 20 }} /> : null}
 
+      {/* KPIs */}
       <View style={styles.kpiGrid}>
         {[
           { title: 'Users', value: kpis.users ?? 0 },
@@ -77,20 +110,128 @@ function OverviewTab() {
         ))}
       </View>
 
-      <Text style={styles.sectionTitle}>Low stock items</Text>
-      {lowStockItems.length === 0 ? (
-        <Text style={styles.empty}>No low stock products.</Text>
-      ) : (
-        lowStockItems.map((p) => (
-          <View key={p.id} style={styles.card}>
-            <Text style={styles.cardName}>{p.name}</Text>
-            <Text style={styles.cardMeta}>Stock: {p.stock} • Unit: {p.unit || '-'} • ${Number(p.price || 0).toFixed(2)}</Text>
+      {/* Charts using recharts via WebView-like approach - use Victory Native or simple bars */}
+      {/* Revenue by day - simple bar visualization */}
+      <View style={overviewStyles.chartCard}>
+        <Text style={overviewStyles.chartTitle}>Revenue by day</Text>
+        {revenueByDay.length === 0 ? <Text style={styles.empty}>No data.</Text> : (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={overviewStyles.barChart}>
+              {revenueByDay.map((d, i) => {
+                const max = Math.max(...revenueByDay.map(x => x.revenue), 1);
+                const h = Math.max(4, (d.revenue / max) * 120);
+                return (
+                  <View key={i} style={overviewStyles.barCol}>
+                    <Text style={overviewStyles.barValue}>{d.revenue.toFixed(0)}</Text>
+                    <View style={[overviewStyles.bar, { height: h, backgroundColor: colors.red }]} />
+                    <Text style={overviewStyles.barLabel} numberOfLines={1}>{d.day?.slice(5)}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          </ScrollView>
+        )}
+      </View>
+
+      {/* Orders by day */}
+      <View style={overviewStyles.chartCard}>
+        <Text style={overviewStyles.chartTitle}>Orders by day</Text>
+        {ordersByDay.length === 0 ? <Text style={styles.empty}>No data.</Text> : (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={overviewStyles.barChart}>
+              {ordersByDay.map((d, i) => {
+                const max = Math.max(...ordersByDay.map(x => x.count), 1);
+                const h = Math.max(4, (d.count / max) * 120);
+                return (
+                  <View key={i} style={overviewStyles.barCol}>
+                    <Text style={overviewStyles.barValue}>{d.count}</Text>
+                    <View style={[overviewStyles.bar, { height: h, backgroundColor: colors.green }]} />
+                    <Text style={overviewStyles.barLabel} numberOfLines={1}>{d.day?.slice(5)}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          </ScrollView>
+        )}
+      </View>
+
+      {/* Orders by status */}
+      <View style={overviewStyles.chartCard}>
+        <Text style={overviewStyles.chartTitle}>Orders by status</Text>
+        {ordersByStatus.length === 0 ? <Text style={styles.empty}>No data.</Text> : (
+          <View style={{ gap: 8 }}>
+            {ordersByStatus.map((d, i) => {
+              const total = ordersByStatus.reduce((s, x) => s + x.count, 0) || 1;
+              const pct = ((d.count / total) * 100).toFixed(1);
+              return (
+                <View key={i}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <Text style={{ fontSize: 12, fontWeight: '600', color: colors.slate700 }}>{d.status}</Text>
+                    <Text style={{ fontSize: 12, color: colors.slate600 }}>{d.count} ({pct}%)</Text>
+                  </View>
+                  <View style={overviewStyles.progressBg}>
+                    <View style={[overviewStyles.progressFill, { width: `${pct}%`, backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }]} />
+                  </View>
+                </View>
+              );
+            })}
           </View>
-        ))
-      )}
+        )}
+      </View>
+
+      {/* Top products by revenue */}
+      <View style={overviewStyles.chartCard}>
+        <Text style={overviewStyles.chartTitle}>Top products by revenue</Text>
+        {topByRevenue.length === 0 ? <Text style={styles.empty}>No data.</Text> : (
+          <View style={{ gap: 8 }}>
+            {topByRevenue.map((d, i) => {
+              const max = Math.max(...topByRevenue.map(x => x.revenue), 1);
+              const pct = ((d.revenue / max) * 100).toFixed(1);
+              return (
+                <View key={i}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <Text style={{ fontSize: 12, fontWeight: '600', color: colors.slate700 }} numberOfLines={1}>{d.name}</Text>
+                    <Text style={{ fontSize: 12, color: colors.slate600 }}>${d.revenue.toFixed(2)}</Text>
+                  </View>
+                  <View style={overviewStyles.progressBg}>
+                    <View style={[overviewStyles.progressFill, { width: `${pct}%`, backgroundColor: colors.red }]} />
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+      </View>
+
+      {/* Low stock table */}
+      <View style={overviewStyles.chartCard}>
+        <Text style={overviewStyles.chartTitle}>Low stock items (≤ {lowStock})</Text>
+        {lowStockItems.length === 0 ? <Text style={styles.empty}>No low stock products.</Text> : (
+          lowStockItems.map((p) => (
+            <View key={p.id} style={styles.card}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardName}>{p.name}</Text>
+                <Text style={styles.cardMeta}>Stock: {p.stock} • Unit: {p.unit || '-'} • ${Number(p.price || 0).toFixed(2)}</Text>
+              </View>
+            </View>
+          ))
+        )}
+      </View>
     </ScrollView>
   );
 }
+
+const overviewStyles = StyleSheet.create({
+  chartCard: { borderWidth: 1, borderColor: colors.slate200, borderRadius: radius.lg, backgroundColor: colors.white, padding: 16, marginBottom: 12 },
+  chartTitle: { fontSize: 14, fontWeight: '800', color: colors.slate900, marginBottom: 12 },
+  barChart: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, paddingBottom: 4, minHeight: 160 },
+  barCol: { alignItems: 'center', width: 40 },
+  bar: { width: 28, borderRadius: 4 },
+  barValue: { fontSize: 9, color: colors.slate600, marginBottom: 2 },
+  barLabel: { fontSize: 9, color: colors.slate500, marginTop: 4, width: 40, textAlign: 'center' },
+  progressBg: { height: 8, backgroundColor: colors.slate100, borderRadius: 4, overflow: 'hidden' },
+  progressFill: { height: 8, borderRadius: 4 },
+});
 
 // ─── PRODUCT MODAL ───────────────────────────────────────────────
 function ProductModal({ open, onClose, product }) {

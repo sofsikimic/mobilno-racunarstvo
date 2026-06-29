@@ -1,7 +1,7 @@
 import { Stack, router, usePathname } from 'expo-router';
 import { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { ShoppingCart, User, LogOut, LogIn, UserPlus, Package, ArrowLeft, Shield } from 'lucide-react-native';
+import { ShoppingCart, User, LogOut, LogIn, UserPlus, Package, ArrowLeft, Shield, ChefHat } from 'lucide-react-native';
 import { useAuthStore } from '../../stores/authStore';
 import { useCartStore } from '../../stores/cartStore';
 import { colors, radius } from '../constants/theme';
@@ -68,6 +68,9 @@ function Navbar() {
           </>
         ) : (
           <>
+            <TouchableOpacity onPress={() => router.push('/external-recipes')}>
+              <ChefHat size={22} color={colors.slate700} />
+            </TouchableOpacity>
             <TouchableOpacity onPress={() => router.push('/login')} style={navStyles.loginBtn}>
               <LogIn size={16} color={colors.white} />
             </TouchableOpacity>
@@ -129,6 +132,7 @@ export default function RootLayout() {
         <Stack.Screen name="recipes/[id]" />
         <Stack.Screen name="orders/[id]" />
         <Stack.Screen name="admin" />
+        <Stack.Screen name="external-recipes" />
       </Stack>
     </View>
   );
