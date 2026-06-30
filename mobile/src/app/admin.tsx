@@ -18,6 +18,101 @@ import { colors, radius } from '../constants/theme';
 
 const STATUS_OPTIONS = ['PENDING', 'PROCESSING', 'PAID', 'COMPLETED', 'CANCELLED'];
 
+// ─── CONFIRM MODAL ───────────────────────────────────────────────
+function ConfirmModal({ open, title, message, onConfirm, onCancel, confirmLabel = 'Delete' }) {
+  return (
+    <Modal visible={open} animationType="fade" transparent onRequestClose={onCancel}>
+      <View style={confirmStyles.overlay}>
+        <View style={confirmStyles.card}>
+          <View style={confirmStyles.iconWrap}>
+            <Trash2 size={22} color={colors.redDark} />
+          </View>
+          <Text style={confirmStyles.title}>{title}</Text>
+          <Text style={confirmStyles.message}>{message}</Text>
+          <View style={confirmStyles.actions}>
+            <TouchableOpacity style={confirmStyles.cancelBtn} onPress={onCancel}>
+              <Text style={confirmStyles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={confirmStyles.confirmBtn} onPress={onConfirm}>
+              <Text style={confirmStyles.confirmText}>{confirmLabel}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const confirmStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  card: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 20,
+    width: '100%',
+    maxWidth: 360,
+    alignItems: 'center',
+  },
+  iconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#fee2e2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.slate900,
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  message: {
+    fontSize: 13,
+    color: colors.slate600,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 10,
+    width: '100%',
+  },
+  cancelBtn: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.slate200,
+    borderRadius: 10,
+    paddingVertical: 11,
+    alignItems: 'center',
+  },
+  cancelText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.slate700,
+  },
+  confirmBtn: {
+    flex: 1,
+    backgroundColor: colors.redDark,
+    borderRadius: 10,
+    paddingVertical: 11,
+    alignItems: 'center',
+  },
+  confirmText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.white,
+  },
+});
+
 function getBadgeStyle(status) {
   switch (status) {
     case 'PENDING': return { bg: '#fef9c3', text: '#854d0e' };
@@ -528,17 +623,24 @@ function ProductsTab() {
   const [localSearch, setLocalSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [confirmTarget, setConfirmTarget] = useState(null);
 
   useEffect(() => { fetchProducts(); }, []);
 
-  async function onDelete(p) {
-    const confirmed = window.confirm(`Delete "${p.name}"?`);
-    if (!confirmed) return;
+  function onDelete(p) {
+    setConfirmTarget(p);
+  }
+
+  async function handleConfirmDelete() {
+    const p = confirmTarget;
+    if (!p) return;
     clearMessages();
     try {
       await deleteProduct(p.id);
     } catch (e: any) {
-      window.alert(e?.message || `Cannot delete "${p.name}". It may be referenced by existing orders.`);
+      Alert.alert('Error', e?.message || `Cannot delete "${p.name}". It may be referenced by existing orders.`);
+    } finally {
+      setConfirmTarget(null);
     }
   }
 
@@ -590,6 +692,13 @@ function ProductsTab() {
       )}
 
       <ProductModal open={modalOpen} onClose={() => { setModalOpen(false); fetchProducts(); }} product={editing} />
+      <ConfirmModal
+        open={!!confirmTarget}
+        title="Delete product"
+        message={`Are you sure you want to delete "${confirmTarget?.name}"?`}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmTarget(null)}
+      />
     </View>
   );
 }
@@ -609,17 +718,24 @@ function RecipesTab() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selected, setSelected] = useState(null);
+  const [confirmTarget, setConfirmTarget] = useState(null);
 
   useEffect(() => { fetchRecipes(); }, []);
 
-  async function onDelete(r) {
-    const confirmed = window.confirm(`Delete "${r.name}"?`);
-    if (!confirmed) return;
+  function onDelete(r) {
+    setConfirmTarget(r);
+  }
+
+  async function handleConfirmDelete() {
+    const r = confirmTarget;
+    if (!r) return;
     clearMessages();
     try {
       await deleteRecipe(r.id);
     } catch (e: any) {
-      window.alert(e?.message || `Cannot delete "${r.name}". It may be referenced by existing orders.`);
+      Alert.alert('Error', e?.message || `Cannot delete "${r.name}". It may be referenced by existing orders.`);
+    } finally {
+      setConfirmTarget(null);
     }
   }
 
@@ -671,6 +787,13 @@ function RecipesTab() {
       )}
 
       <RecipeModal open={modalOpen} onClose={() => { setModalOpen(false); fetchRecipes(); }} recipe={selected} />
+      <ConfirmModal
+        open={!!confirmTarget}
+        title="Delete recipe"
+        message={`Are you sure you want to delete "${confirmTarget?.name}"?`}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmTarget(null)}
+      />
     </View>
   );
 }

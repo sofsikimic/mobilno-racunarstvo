@@ -46,6 +46,9 @@ function Navbar() {
         <TouchableOpacity onPress={() => router.push('/products')}>
           <Package size={22} color={colors.slate700} />
         </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/external-recipes')}>
+          <ChefHat size={22} color={colors.slate700} />
+        </TouchableOpacity>
 
         {user ? (
           <>
@@ -68,9 +71,6 @@ function Navbar() {
           </>
         ) : (
           <>
-            <TouchableOpacity onPress={() => router.push('/external-recipes')}>
-              <ChefHat size={22} color={colors.slate700} />
-            </TouchableOpacity>
             <TouchableOpacity onPress={() => router.push('/login')} style={navStyles.loginBtn}>
               <LogIn size={16} color={colors.white} />
             </TouchableOpacity>

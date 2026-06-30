@@ -252,10 +252,13 @@ def delete_product(product_id: int):
         return jsonify({"error": "Product not found."}), 404
 
     db.session.delete(product)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"error": "Cannot delete product — it is used in existing orders."}), 409
 
     return jsonify({"message": "Product deleted."}), 200
-
 
 def list_products():
     """

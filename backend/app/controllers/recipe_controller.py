@@ -319,7 +319,12 @@ def delete_recipe(recipe_id: int):
         return jsonify({"error": "Recipe not found."}), 404
 
     db.session.delete(recipe)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"error": "Cannot delete recipe — it is used in existing orders."}), 409
+
     return jsonify({"message": "Recipe deleted."}), 200
 
 
