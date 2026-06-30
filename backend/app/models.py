@@ -80,6 +80,51 @@ class RecipeIngredient(db.Model):
         db.UniqueConstraint("recipe_id", "product_id", name="uq_recipe_product"),
     )
 
+class RecipeFavorite(db.Model):
+    __tablename__ = "recipe_favorites"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    recipe_id = db.Column(db.Integer, db.ForeignKey("recipes.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    user = db.relationship("User", backref=db.backref("favorite_recipes", lazy=True, cascade="all, delete-orphan"))
+    recipe = db.relationship("Recipe", backref=db.backref("favorited_by", lazy=True, cascade="all, delete-orphan"))
+
+    created_at = db.Column(db.DateTime, server_default=db.func.now(), nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "recipe_id", name="uq_user_recipe_favorite"),
+    )
+
+
+class RecipeRating(db.Model):
+    __tablename__ = "recipe_ratings"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    recipe_id = db.Column(db.Integer, db.ForeignKey("recipes.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    stars = db.Column(db.Integer, nullable=False)
+
+    user = db.relationship("User", backref=db.backref("recipe_ratings", lazy=True, cascade="all, delete-orphan"))
+    recipe = db.relationship("Recipe", backref=db.backref("ratings", lazy=True, cascade="all, delete-orphan"))
+
+    created_at = db.Column(db.DateTime, server_default=db.func.now(), nullable=False)
+    updated_at = db.Column(
+        db.DateTime,
+        server_default=db.func.now(),
+        onupdate=db.func.now(),
+        nullable=False,
+    )
+
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "recipe_id", name="uq_user_recipe_rating"),
+        db.CheckConstraint("stars >= 1 AND stars <= 5", name="ck_rating_stars_range"),
+    )
+
+
 class Order(db.Model):
     __tablename__ = "orders"
 

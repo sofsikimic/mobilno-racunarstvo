@@ -26,12 +26,14 @@ export const useRecipesStore = create((set, get) => ({
     const sort = params.sort ?? get().sort;
     const dir = params.dir ?? get().dir;
     const productId = params.productId ?? get().productId;
+    const favoritesOnly = params.favoritesOnly ?? false;
 
     const qs = new URLSearchParams();
     if (search) qs.set('search', search);
     if (sort) qs.set('sort', sort);
     if (dir) qs.set('dir', dir);
     if (productId) qs.set('productId', productId);
+    if (favoritesOnly) qs.set('favoritesOnly', '1');
 
     set({ isLoading: true, error: null });
     try {
@@ -105,6 +107,83 @@ export const useRecipesStore = create((set, get) => ({
       return true;
     } catch (e) {
       set({ isLoading: false, error: msg(e, 'Failed to delete recipe.') });
+      throw e;
+    }
+  },
+
+  // ─── Favorites ──────────────────────────────────────────────
+  // `isFavorited` je TRENUTNO stanje pre togla (ovo očekuju ekrani:
+  // toggleFavorite(item.id, item.is_favorited)).
+  toggleFavorite: async (id, isFavorited) => {
+    const patch = { is_favorited: !isFavorited };
+
+    // optimistic update
+    set((s) => ({
+      recipe: s.recipe?.id === id ? { ...s.recipe, ...patch } : s.recipe,
+      items: s.items.map((r) => (r.id === id ? { ...r, ...patch } : r)),
+    }));
+
+    try {
+      if (isFavorited) {
+        await apiFetch(`/api/recipes/${id}/favorite`, { method: 'DELETE' });
+      } else {
+        await apiFetch(`/api/recipes/${id}/favorite`, { method: 'POST' });
+      }
+      return true;
+    } catch (e) {
+      // revert ako padne
+      set((s) => ({
+        recipe: s.recipe?.id === id ? { ...s.recipe, is_favorited: isFavorited } : s.recipe,
+        items: s.items.map((r) => (r.id === id ? { ...r, is_favorited: isFavorited } : r)),
+        error: msg(e, 'Failed to update favorite.'),
+      }));
+      throw e;
+    }
+  },
+
+  // ─── Ratings ────────────────────────────────────────────────
+  rateRecipe: async (id, stars) => {
+    set({ error: null });
+    try {
+      const data = await apiFetch(`/api/recipes/${id}/rating`, {
+        method: 'POST',
+        body: JSON.stringify({ stars }),
+      });
+
+      const patch = {
+        avg_rating: data.avg_rating,
+        ratings_count: data.ratings_count,
+        my_rating: data.my_rating,
+      };
+
+      set((s) => ({
+        recipe: s.recipe?.id === id ? { ...s.recipe, ...patch } : s.recipe,
+        items: s.items.map((r) => (r.id === id ? { ...r, ...patch } : r)),
+      }));
+
+      return data;
+    } catch (e) {
+      set({ error: msg(e, 'Failed to save rating.') });
+      throw e;
+    }
+  },
+
+  deleteRating: async (id) => {
+    set({ error: null });
+    try {
+      await apiFetch(`/api/recipes/${id}/rating`, { method: 'DELETE' });
+
+      if (get().recipe?.id === id) {
+        await get().fetchRecipeById(id);
+      } else {
+        set((s) => ({
+          items: s.items.map((r) => (r.id === id ? { ...r, my_rating: null } : r)),
+        }));
+      }
+
+      return true;
+    } catch (e) {
+      set({ error: msg(e, 'Failed to remove rating.') });
       throw e;
     }
   },
