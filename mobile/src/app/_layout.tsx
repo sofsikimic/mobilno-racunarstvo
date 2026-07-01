@@ -34,48 +34,50 @@ function Navbar() {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity onPress={() => router.push('/products')}>
-        <Package size={22} color={colors.slate700} />
-      </TouchableOpacity>
+      <View style={navStyles.actions}>
+        <TouchableOpacity onPress={() => router.push('/products')}>
+          <Package size={22} color={colors.slate700} />
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push('/external-recipes')}>
-        <ChefHat size={22} color={colors.slate700} />
-      </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/external-recipes')}>
+          <ChefHat size={22} color={colors.slate700} />
+        </TouchableOpacity>
 
-      {user ? (
-        <>
-          {isUser && (
-            <>
-              <TouchableOpacity onPress={() => router.push('/cart')}>
-                <ShoppingCart size={22} color={colors.slate700} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => router.push('/favorites')}>
-                <Heart size={22} color='#ef4444' fill='#ef4444' />
-              </TouchableOpacity>
-            </>
-          )}
-          <TouchableOpacity onPress={() => router.push('/profile')}>
-            <User size={22} color={colors.slate700} />
-          </TouchableOpacity>
-          {isAdmin && (
-            <TouchableOpacity onPress={() => router.push('/admin')} style={navStyles.adminBtn}>
-              <Shield size={16} color="#fff" />
+        {user ? (
+          <>
+            {isUser && (
+              <>
+                <TouchableOpacity onPress={() => router.push('/cart')}>
+                  <ShoppingCart size={22} color={colors.slate700} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => router.push('/favorites')}>
+                  <Heart size={22} color='#ef4444' fill='#ef4444' />
+                </TouchableOpacity>
+              </>
+            )}
+            <TouchableOpacity onPress={() => router.push('/profile')}>
+              <User size={22} color={colors.slate700} />
             </TouchableOpacity>
-          )}
-          <TouchableOpacity onPress={handleLogout} style={navStyles.logoutBtn}>
-            <LogOut size={16} color={colors.white} />
-          </TouchableOpacity>
-        </>
-      ) : (
-        <>
-          <TouchableOpacity onPress={() => router.push('/login')} style={navStyles.loginBtn}>
-            <LogIn size={16} color={colors.white} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push('/register')} style={navStyles.registerBtn}>
-            <UserPlus size={16} color={colors.white} />
-          </TouchableOpacity>
-        </>
-      )}
+            {isAdmin && (
+              <TouchableOpacity onPress={() => router.push('/admin')} style={navStyles.adminBtn}>
+                <Shield size={16} color="#fff" />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={handleLogout} style={navStyles.logoutBtn}>
+              <LogOut size={16} color={colors.white} />
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            <TouchableOpacity onPress={() => router.push('/login')} style={navStyles.loginBtn}>
+              <LogIn size={16} color={colors.white} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/register')} style={navStyles.registerBtn}>
+              <UserPlus size={16} color={colors.white} />
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
     </View>
   );
 }
@@ -90,7 +92,8 @@ const navStyles = StyleSheet.create({
   backBtn: { padding: 4 },
   brand: { flexDirection: 'row', alignItems: 'center' },
   brandText: { fontSize: 16, fontWeight: '800', color: colors.slate900 },
-  actions: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  iconBtn: { padding: 6 },
   loginBtn: { backgroundColor: colors.slate700, padding: 6, borderRadius: radius.sm },
   registerBtn: { backgroundColor: colors.red, padding: 6, borderRadius: radius.sm },
   logoutBtn: { backgroundColor: colors.green, padding: 6, borderRadius: radius.sm },

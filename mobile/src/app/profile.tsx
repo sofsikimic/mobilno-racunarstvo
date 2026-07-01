@@ -158,8 +158,10 @@ export default function Profile() {
           {/* Orders header */}
           <View style={styles.ordersHeader}>
             <View>
-              <Text style={styles.ordersTitle}>My orders</Text>
-              <Text style={styles.ordersSubtitle}>View your order history and status.</Text>
+              <Text style={styles.ordersTitle}>{isAdmin ? 'All orders' : 'My orders'}</Text>
+              <Text style={styles.ordersSubtitle}>
+                {isAdmin ? 'Overview of every order in the system.' : 'View your order history and status.'}
+              </Text>
             </View>
             <TouchableOpacity style={styles.refreshBtn} onPress={() => fetchOrders()}>
               <Text style={styles.refreshBtnText}>Refresh</Text>
@@ -173,8 +175,9 @@ export default function Profile() {
             <ActivityIndicator size="large" color={colors.red} style={{ marginTop: 20 }} />
           ) : !sorted.length ? (
             <Text style={styles.empty}>
-              No orders yet.{' '}
-              <Text style={styles.emptyLink} onPress={() => router.push('/products')}>Browse products</Text>
+              {isAdmin
+                ? 'No orders in the system yet.'
+                : (<>No orders yet.{' '}<Text style={styles.emptyLink} onPress={() => router.push('/products')}>Browse products</Text></>)}
             </Text>
           ) : null}
         </>

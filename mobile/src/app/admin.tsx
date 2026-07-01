@@ -180,8 +180,8 @@ function OverviewTab() {
           keyboardType="numeric"
           placeholderTextColor={colors.slate500}
         />
-        <TouchableOpacity style={[styles.searchBtn, { alignSelf: 'stretch' }]} onPress={() => { clearMessages(); fetchOverview({ days, lowStock }); }}>
-          <Text style={styles.searchBtnText}>Apply</Text>
+        <TouchableOpacity style={[styles.applyBtn, { alignSelf: 'stretch' }]} onPress={() => { clearMessages(); fetchOverview({ days, lowStock }); }}>
+          <Text style={styles.applyBtnText}>Apply</Text>
         </TouchableOpacity>
       </View>
 
@@ -430,6 +430,8 @@ function RecipeModal({ open, onClose, recipe }) {
 
   const products = useProductsStore((s) => s.items);
   const fetchProducts = useProductsStore((s) => s.fetchProducts);
+  const productsLoading = useProductsStore((s) => s.isLoading);
+  const productsError = useProductsStore((s) => s.error);
 
   const isEdit = Boolean(recipe?.id);
   const [name, setName] = useState('');
@@ -550,16 +552,24 @@ function RecipeModal({ open, onClose, recipe }) {
 
               <Text style={recipeModalStyles.hintText}>Tap a product below to select it:</Text>
 
+              {productsError ? <Text style={styles.error}>{productsError}</Text> : null}
+
               <ScrollView style={recipeModalStyles.productList} nestedScrollEnabled>
-                {(products || []).map((p) => (
-                  <TouchableOpacity
-                    key={p.id}
-                    style={[recipeModalStyles.productItem, newPid === String(p.id) && recipeModalStyles.productItemActive]}
-                    onPress={() => setNewPid(String(p.id))}
-                  >
-                    <Text style={recipeModalStyles.productItemText}>#{p.id} — {p.name} ({p.unit})</Text>
-                  </TouchableOpacity>
-                ))}
+                {productsLoading ? (
+                  <ActivityIndicator size="small" color={colors.red} style={{ margin: 10 }} />
+                ) : (products || []).length === 0 ? (
+                  <Text style={[styles.empty, { marginVertical: 10 }]}>No products available. Add a product first.</Text>
+                ) : (
+                  (products || []).map((p) => (
+                    <TouchableOpacity
+                      key={p.id}
+                      style={[recipeModalStyles.productItem, newPid === String(p.id) && recipeModalStyles.productItemActive]}
+                      onPress={() => setNewPid(String(p.id))}
+                    >
+                      <Text style={recipeModalStyles.productItemText}>#{p.id} — {p.name} ({p.unit})</Text>
+                    </TouchableOpacity>
+                  ))
+                )}
               </ScrollView>
 
               {ingredients.length === 0 ? (
@@ -1016,6 +1026,8 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, borderWidth: 1, borderColor: colors.slate200, borderRadius: radius.sm, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, backgroundColor: colors.slate50, color: colors.slate900 },
   searchBtn: { backgroundColor: colors.red, paddingHorizontal: 14, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
   searchBtnText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  applyBtn: { backgroundColor: colors.red, paddingHorizontal: 18, paddingVertical: 4, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
+  applyBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
   filterBox: { borderWidth: 1, borderColor: colors.slate200, borderRadius: radius.md, padding: 12, marginBottom: 12 },
   smBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: colors.slate200, backgroundColor: colors.white, paddingHorizontal: 12, paddingVertical: 8, borderRadius: radius.sm },
   smBtnText: { fontSize: 13, fontWeight: '600', color: colors.slate700 },
