@@ -12,10 +12,11 @@ def swagger_template():
         "produces": ["application/json"],
 
         "securityDefinitions": {
-            "cookieAuth": {
+            "bearerAuth": {
                 "type": "apiKey",
-                "in": "cookie",
-                "name": "session",
+                "in": "header",
+                "name": "Authorization",
+                "description": "JWT access token, format: 'Bearer &lt;token&gt;'",
             }
         },
 

@@ -35,7 +35,7 @@ def admin_overview():
     tags:
       - Admin
     security:
-      - cookieAuth: []
+      - bearerAuth: []
     parameters:
       - in: query
         name: days

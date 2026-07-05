@@ -1,10 +1,17 @@
 from functools import wraps
 from flask import jsonify
-from flask_login import current_user
+from flask_jwt_extended import verify_jwt_in_request
+
+from app.extensions import current_user
+
 
 def require_auth(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
+        try:
+            verify_jwt_in_request()
+        except Exception:
+            return jsonify({"error": "Unauthorized"}), 401
         if not current_user.is_authenticated:
             return jsonify({"error": "Unauthorized"}), 401
         return fn(*args, **kwargs)
@@ -17,6 +24,10 @@ def require_role(*roles):
     def decorator(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
+            try:
+                verify_jwt_in_request()
+            except Exception:
+                return jsonify({"error": "Unauthorized"}), 401
             if not current_user.is_authenticated:
                 return jsonify({"error": "Unauthorized"}), 401
             if (current_user.role or "").lower() not in roles_set:

@@ -25,7 +25,7 @@ def create_product():
     tags:
       - Products
     security:
-      - cookieAuth: []
+      - bearerAuth: []
     parameters:
       - in: body
         name: body
@@ -117,7 +117,7 @@ def update_product(product_id: int):
     tags:
       - Products
     security:
-      - cookieAuth: []
+      - bearerAuth: []
     parameters:
       - in: path
         name: product_id
@@ -221,7 +221,7 @@ def delete_product(product_id: int):
     tags:
       - Products
     security:
-      - cookieAuth: []
+      - bearerAuth: []
     parameters:
       - in: path
         name: product_id

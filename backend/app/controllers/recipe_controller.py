@@ -1,9 +1,8 @@
 from flask import request, jsonify
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import asc, desc, func
-from flask_login import current_user
 
-from app.extensions import db
+from app.extensions import db, current_user
 from app.models import Recipe, RecipeIngredient, Product, RecipeFavorite, RecipeRating
 
 ALLOWED_SORT = {"name"}

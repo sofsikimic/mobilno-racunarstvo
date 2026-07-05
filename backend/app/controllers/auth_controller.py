@@ -1,9 +1,9 @@
 from flask import request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from email_validator import validate_email, EmailNotValidError
-from flask_login import login_user, logout_user, current_user
+from flask_jwt_extended import create_access_token
 
-from app.extensions import db
+from app.extensions import db, current_user
 from app.models import User
 
 
@@ -71,11 +71,12 @@ def register():
     db.session.add(user)
     db.session.commit()
 
-    login_user(user)
+    access_token = create_access_token(identity=str(user.id))
 
     return jsonify(
         {
             "message": "Registered successfully.",
+            "access_token": access_token,
             "user": {"id": user.id, "name": user.name, "email": user.email, "role": user.role},
         }
     ), 201
@@ -126,11 +127,12 @@ def login():
     if not check_password_hash(user.password_hash, password):
         return jsonify({"error": "Invalid credentials."}), 401
 
-    login_user(user)
+    access_token = create_access_token(identity=str(user.id))
 
     return jsonify(
         {
             "message": "Logged in.",
+            "access_token": access_token,
             "user": {"id": user.id, "name": user.name, "email": user.email, "role": user.role},
         }
     ), 200
@@ -138,12 +140,12 @@ def login():
 
 def logout():
     """
-    Logout (clears session)
+    Logout
     ---
     tags:
       - Auth
     security:
-      - cookieAuth: []
+      - bearerAuth: []
     responses:
       200:
         description: Logged out
@@ -152,19 +154,19 @@ def logout():
           properties:
             message: { type: string }
     """
-    if current_user.is_authenticated:
-        logout_user()
+    # JWT auth is stateless: there's no server-side session to clear.
+    # The client is responsible for discarding its stored access token.
     return jsonify({"message": "Logged out."}), 200
 
 
 def me():
     """
-    Current user (session)
+    Current user (JWT)
     ---
     tags:
       - Auth
     security:
-      - cookieAuth: []
+      - bearerAuth: []
     responses:
       200:
         description: Current user or null

@@ -109,7 +109,7 @@ def update_recipe_ingredient(ri_id: int):
     tags:
       - RecipeIngredients
     security:
-      - cookieAuth: []
+      - bearerAuth: []
     parameters:
       - in: path
         name: ri_id
@@ -198,7 +198,7 @@ def delete_recipe_ingredient(ri_id: int):
     tags:
       - RecipeIngredients
     security:
-      - cookieAuth: []
+      - bearerAuth: []
     parameters:
       - in: path
         name: ri_id

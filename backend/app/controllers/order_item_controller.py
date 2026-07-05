@@ -1,8 +1,7 @@
 from flask import request, jsonify
 from sqlalchemy.exc import IntegrityError
-from flask_login import current_user
 
-from app.extensions import db
+from app.extensions import db, current_user
 from app.models import Order, OrderItem, Product
 from app.middlewares.order_rules import is_final_status
 
@@ -14,7 +13,7 @@ def list_order_items():
     tags:
       - OrderItems
     security:
-      - cookieAuth: []
+      - bearerAuth: []
     parameters:
       - in: query
         name: orderId
@@ -92,7 +91,7 @@ def update_order_item(item_id: int):
     tags:
       - OrderItems
     security:
-      - cookieAuth: []
+      - bearerAuth: []
     parameters:
       - in: path
         name: item_id

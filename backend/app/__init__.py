@@ -5,9 +5,8 @@ from flask_cors import CORS
 from sqlalchemy import text
 from flasgger import Swagger
 
-from app.extensions import db, migrate, login_manager
+from app.extensions import db, migrate, jwt
 from app.routes import register_routes
-from app.models import User
 from app.swagger import swagger_template
 
 load_dotenv()
@@ -20,9 +19,10 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    app.config["SESSION_COOKIE_HTTPONLY"] = True
-    app.config["SESSION_COOKIE_SAMESITE"] = os.getenv("COOKIE_SAMESITE", "Lax")
-    app.config["SESSION_COOKIE_SECURE"] = os.getenv("COOKIE_SECURE", "0") == "1"
+    # JWT config (tokens replace the old session cookie auth)
+    app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", app.config["SECRET_KEY"])
+    app.config["JWT_TOKEN_LOCATION"] = ["headers"]
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = int(os.getenv("JWT_EXPIRES_SECONDS", 60 * 60 * 24 * 30))  # 30 days
 
     cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173")
     CORS(app, supports_credentials=True, origins=[o.strip() for o in cors_origins.split(",")])
@@ -31,11 +31,7 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
 
-    login_manager.init_app(app)
-
-    @login_manager.user_loader
-    def load_user(user_id: str):
-        return User.query.get(int(user_id))
+    jwt.init_app(app)
 
     register_routes(app)
 

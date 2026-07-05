@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { apiFetch } from '../lib/api';
+import { apiFetch, setToken } from '../lib/api';
 
 const msg = (e, fallback) => e?.message || fallback;
 
@@ -20,6 +20,7 @@ export const useAuthStore = create((set, get) => ({
       set({ user: data?.user ?? null, isLoading: false });
       return data?.user ?? null;
     } catch (e) {
+      await setToken(null);
       set({
         user: null,
         isLoading: false,
@@ -36,6 +37,7 @@ export const useAuthStore = create((set, get) => ({
         method: 'POST',
         body: JSON.stringify({ name, email, password, role }),
       });
+      await setToken(data.access_token);
       set({
         user: data.user,
         isLoading: false,
@@ -55,6 +57,7 @@ export const useAuthStore = create((set, get) => ({
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
+      await setToken(data.access_token);
       set({
         user: data.user,
         isLoading: false,
@@ -71,6 +74,7 @@ export const useAuthStore = create((set, get) => ({
     set({ isLoading: true, error: null, success: null });
     try {
       const data = await apiFetch('/api/auth/logout', { method: 'POST' });
+      await setToken(null);
       set({
         user: null,
         isLoading: false,
@@ -78,7 +82,8 @@ export const useAuthStore = create((set, get) => ({
       });
       return true;
     } catch (e) {
-      set({ isLoading: false, error: msg(e, 'Logout failed.') });
+      await setToken(null);
+      set({ user: null, isLoading: false, error: msg(e, 'Logout failed.') });
       throw e;
     }
   },

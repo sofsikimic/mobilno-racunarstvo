@@ -2,9 +2,8 @@ from decimal import Decimal
 from flask import request, jsonify
 from sqlalchemy import asc, desc
 from sqlalchemy.exc import IntegrityError
-from flask_login import current_user
 
-from app.extensions import db
+from app.extensions import db, current_user
 from app.models import Order, OrderItem, Product
 from app.middlewares.order_rules import FINAL_STATUSES, is_final_status
 
@@ -27,7 +26,7 @@ def create_order():
     tags:
       - Orders
     security:
-      - cookieAuth: []
+      - bearerAuth: []
     parameters:
       - in: body
         name: body
@@ -159,7 +158,7 @@ def list_orders():
     tags:
       - Orders
     security:
-      - cookieAuth: []
+      - bearerAuth: []
     parameters:
       - in: query
         name: sort
@@ -254,7 +253,7 @@ def get_order(order_id: int):
     tags:
       - Orders
     security:
-      - cookieAuth: []
+      - bearerAuth: []
     parameters:
       - in: path
         name: order_id
@@ -317,7 +316,7 @@ def cancel_order(order_id: int):
     tags:
       - Orders
     security:
-      - cookieAuth: []
+      - bearerAuth: []
     parameters:
       - in: path
         name: order_id
@@ -371,7 +370,7 @@ def admin_update_status(order_id: int):
     tags:
       - Orders
     security:
-      - cookieAuth: []
+      - bearerAuth: []
     parameters:
       - in: path
         name: order_id
