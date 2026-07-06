@@ -63,7 +63,7 @@ export default function ExternalRecipes() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>External Recipes</Text>
-      <Text style={styles.subtitle}>Suggestions from TheMealDB{q ? ` (query: "${q}")` : ''}.</Text>
+      <Text style={styles.subtitle}>Suggestions from TheMealDB.</Text>
 
       <View style={styles.searchRow}>
         <View style={styles.searchInputWrap}>

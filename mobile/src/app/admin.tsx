@@ -869,10 +869,6 @@ function OrdersTab() {
             </TouchableOpacity>
           ))}
         </ScrollView>
-
-        <TouchableOpacity style={[styles.smBtn, { marginTop: 8, alignSelf: 'flex-end' }]} onPress={() => { clearMessages(); setUserIdDraft(''); setQuery({ status: '', userId: '' }); fetchOrders({ status: '', userId: '' }); }}>
-          <Text style={styles.smBtnText}>Reset filters</Text>
-        </TouchableOpacity>
       </View>
 
       {isLoading ? <ActivityIndicator size="large" color={colors.red} style={{ marginTop: 20 }} /> : (
@@ -956,7 +952,7 @@ export default function Admin() {
             style={[styles.tabBtn, tab === key && styles.tabBtnActive]}
             onPress={() => setTab(key)}
           >
-            <Icon size={12} color={tab === key ? colors.red : colors.slate600} />
+            <Icon size={16} color={tab === key ? colors.red : colors.slate600} />
             <Text style={[styles.tabBtnText, tab === key && styles.tabBtnTextActive]}>{label}</Text>
           </TouchableOpacity>
         ))}
@@ -1009,16 +1005,16 @@ const styles = StyleSheet.create({
   adminTitle: { fontSize: 22, fontWeight: '800', color: colors.slate900 },
   adminSubtitle: { fontSize: 13, color: colors.slate600, marginTop: 2 },
   tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.slate200, paddingHorizontal: 8, paddingVertical: 6, gap: 6 },
-  tabBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 6, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.slate200, backgroundColor: colors.white, flex: 1 },
+  tabBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.slate200, backgroundColor: colors.white, flex: 1 },
   tabBtnActive: { borderColor: colors.red, backgroundColor: '#fef2f2' },
-  tabBtnText: { fontSize: 10, fontWeight: '600', color: colors.slate600 },
+  tabBtnText: { fontSize: 12, fontWeight: '600', color: colors.slate600 },
   tabBtnTextActive: { color: colors.red },
   tabContent: { flex: 1, padding: 16 },
   tabHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 },
   tabTitle: { fontSize: 18, fontWeight: '800', color: colors.slate900 },
   tabSubtitle: { fontSize: 13, color: colors.slate600, marginTop: 2 },
   kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
-  kpiCard: { width: '47%', borderWidth: 1, borderColor: colors.slate200, borderRadius: radius.md, padding: 14, backgroundColor: colors.white },
+  kpiCard: { width: '46%', borderWidth: 1, borderColor: colors.slate200, borderRadius: radius.md, padding: 14, backgroundColor: colors.white },
   kpiTitle: { fontSize: 11, fontWeight: '700', color: colors.slate500, textTransform: 'uppercase' },
   kpiValue: { fontSize: 22, fontWeight: '800', color: colors.slate900, marginTop: 4 },
   sectionTitle: { fontSize: 15, fontWeight: '800', color: colors.slate900, marginBottom: 10 },
@@ -1026,8 +1022,8 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, borderWidth: 1, borderColor: colors.slate200, borderRadius: radius.sm, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, backgroundColor: colors.slate50, color: colors.slate900 },
   searchBtn: { backgroundColor: colors.red, paddingHorizontal: 14, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
   searchBtnText: { color: '#fff', fontWeight: '700', fontSize: 13 },
-  applyBtn: { backgroundColor: colors.red, paddingHorizontal: 18, paddingVertical: 4, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
-  applyBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  applyBtn: { backgroundColor: colors.red, paddingHorizontal: 18, paddingVertical: 12, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
+  applyBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   filterBox: { borderWidth: 1, borderColor: colors.slate200, borderRadius: radius.md, padding: 12, marginBottom: 12 },
   smBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: colors.slate200, backgroundColor: colors.white, paddingHorizontal: 12, paddingVertical: 8, borderRadius: radius.sm },
   smBtnText: { fontSize: 13, fontWeight: '600', color: colors.slate700 },
