@@ -1,7 +1,7 @@
 from flask import request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from email_validator import validate_email, EmailNotValidError
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
 
 from app.extensions import db, current_user
 from app.models import User
@@ -72,11 +72,13 @@ def register():
     db.session.commit()
 
     access_token = create_access_token(identity=str(user.id))
+    refresh_token = create_refresh_token(identity=str(user.id))
 
     return jsonify(
         {
             "message": "Registered successfully.",
             "access_token": access_token,
+            "refresh_token": refresh_token,
             "user": {"id": user.id, "name": user.name, "email": user.email, "role": user.role},
         }
     ), 201
@@ -128,11 +130,13 @@ def login():
         return jsonify({"error": "Invalid credentials."}), 401
 
     access_token = create_access_token(identity=str(user.id))
+    refresh_token = create_refresh_token(identity=str(user.id))
 
     return jsonify(
         {
             "message": "Logged in.",
             "access_token": access_token,
+            "refresh_token": refresh_token,
             "user": {"id": user.id, "name": user.name, "email": user.email, "role": user.role},
         }
     ), 200
@@ -158,6 +162,31 @@ def logout():
     # The client is responsible for discarding its stored access token.
     return jsonify({"message": "Logged out."}), 200
 
+
+@jwt_required(refresh=True)
+def refresh():
+    """
+    Refresh access token
+    ---
+    tags:
+      - Auth
+    security:
+      - bearerAuth: []
+    responses:
+      200:
+        description: New access token issued
+        schema:
+          type: object
+          properties:
+            access_token: { type: string }
+      401:
+        description: Invalid, missing or expired refresh token
+        schema:
+          $ref: '#/definitions/Error'
+    """
+    identity = get_jwt_identity()
+    new_access_token = create_access_token(identity=identity)
+    return jsonify({"access_token": new_access_token}), 200
 
 def me():
     """
